@@ -70,7 +70,7 @@ def get_message_content(response):
             return response.get("output_text", "")
     return ""
 
-def translate_payload(payload, field_names):
+def translate_payload(payload, field_names, max_retries=3, retry_delay=1.0):
     system_prompt = (
         "你是翻译引擎。仅翻译以下字段的值为中文，其他字段即使出现也原样返回："
         f"{', '.join(field_names)}。只返回JSON对象，保持键名完全不变。"
@@ -81,15 +81,19 @@ def translate_payload(payload, field_names):
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": json.dumps(payload, ensure_ascii=False)}
     ]
-    response = Generation.call(
-        model="qwen-plus",
-        messages=messages,
-        result_format="message"
-    )
-    content = get_message_content(response).strip()
-    if not content:
-        raise ValueError("Empty response from model")
-    return extract_json(content)
+    last_error = None
+    for attempt in range(max_retries):
+        response = Generation.call(
+            model="qwen-plus",
+            messages=messages,
+            result_format="message"
+        )
+        content = get_message_content(response).strip()
+        if content:
+            return extract_json(content)
+        last_error = ValueError("Empty response from model")
+        time.sleep(retry_delay * (2 ** attempt))
+    raise last_error
 
 def main():
     api_key = os.getenv("DASHSCOPE_API_KEY")
@@ -106,25 +110,36 @@ def main():
 
     total = len(df_head)
     translated_rows = 0
-    for idx, row in df_head.iterrows():
-        print(f"Processing row {idx + 1}/{total} (id={row.get('id', '')})")
-        payload = {}
-        for col in translate_columns:
-            if col not in df_head.columns:
+    temp_output_path = output_path.with_name(f"{output_path.stem}_tmp{output_path.suffix}")
+    try:
+        for idx, row in df_head.iterrows():
+            print(f"Processing row {idx + 1}/{total} (id={row.get('id', '')})")
+            payload = {}
+            for col in translate_columns:
+                if col not in df_head.columns:
+                    continue
+                value = row[col]
+                if should_translate(value):
+                    payload[col] = str(value)
+            if not payload:
+                print("No translatable fields, skip")
                 continue
-            value = row[col]
-            if should_translate(value):
-                payload[col] = str(value)
-        if not payload:
-            print("No translatable fields, skip")
-            continue
-        print(f"Translating fields: {', '.join(payload.keys())}")
-        translated = translate_payload(payload, translate_columns)
-        for col, value in translated.items():
-            if col in df_head.columns and isinstance(value, str):
-                df_head.at[idx, col] = value
-        translated_rows += 1
-        time.sleep(0.2)
+            print(f"Translating fields: {', '.join(payload.keys())}")
+            try:
+                translated = translate_payload(payload, translate_columns)
+            except Exception as exc:
+                print(f"Translate failed at row {idx + 1} (id={row.get('id', '')}): {exc}")
+                continue
+            for col, value in translated.items():
+                if col in df_head.columns and isinstance(value, str):
+                    df_head.at[idx, col] = value
+            translated_rows += 1
+            time.sleep(0.2)
+    except Exception as exc:
+        df_head.to_csv(temp_output_path, index=False, encoding="utf-8-sig")
+        print(f"Unexpected error, saved temp: {temp_output_path}")
+        print(f"Error: {exc}")
+        return
 
     df_head.to_csv(output_path, index=False, encoding="utf-8-sig")
     print(f"Saved: {output_path}")
