@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzz.backend.mapper.UserMapper">
+    <resultMap id="UserResultMap" type="com.lzz.backend.entity.User">
+        <id column="id" property="id"/>
+        <result column="username" property="username"/>
+        <result column="password_hash" property="passwordHash"/>
+        <result column="role" property="role"/>
+        <result column="avatar_url" property="avatarUrl"/>
+        <result column="bio" property="bio"/>
+    </resultMap>
+
+    <select id="selectByUsername" resultMap="UserResultMap">
+        select
+            id,
+            username,
+            password_hash,
+            role,
+            avatar_url,
+            bio
+        from users
+        where username = #{username}
+          and is_deleted = 0
+        limit 1
+    </select>
+
+    <select id="selectAnyByUsername" resultMap="UserResultMap">
+        select
+            id,
+            username,
+            password_hash,
+            role,
+            avatar_url,
+            bio
+        from users
+        where username = #{username}
+          and is_deleted = 0
+        limit 1
+    </select>
+</mapper>
