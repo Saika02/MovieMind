@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzz.backend.mapper.ReviewMapper">
+    <resultMap id="ReviewResultMap" type="com.lzz.backend.entity.Review">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="movie_id" property="movieId"/>
+        <result column="score" property="score"/>
+        <result column="content" property="content"/>
+    </resultMap>
+
+    <select id="selectByIdAndUser" resultMap="ReviewResultMap">
+        select
+            id,
+            user_id,
+            movie_id,
+            score,
+            content
+        from reviews
+        where id = #{id}
+          and user_id = #{userId}
+          and is_deleted = 0
+    </select>
+
+    <select id="selectByUserAndMovie" resultMap="ReviewResultMap">
+        select
+            id,
+            user_id,
+            movie_id,
+            score,
+            content
+        from reviews
+        where user_id = #{userId}
+          and movie_id = #{movieId}
+          and is_deleted = 0
+        limit 1
+    </select>
+
+    <select id="selectByUser" resultMap="ReviewResultMap">
+        select
+            id,
+            user_id,
+            movie_id,
+            score,
+            content
+        from reviews
+        where user_id = #{userId}
+          and is_deleted = 0
+        order by id desc
+    </select>
+
+    <select id="selectPageByUser" resultMap="ReviewResultMap">
+        select
+            id,
+            user_id,
+            movie_id,
+            score,
+            content
+        from reviews
+        where user_id = #{userId}
+          and is_deleted = 0
+        order by id desc
+    </select>
+
+    <select id="selectByUserAndMovieList" resultMap="ReviewResultMap">
+        select
+            id,
+            user_id,
+            movie_id,
+            score,
+            content
+        from reviews
+        where user_id = #{userId}
+          and movie_id = #{movieId}
+          and is_deleted = 0
+        order by id desc
+    </select>
+
+    <select id="selectPageByUserAndMovie" resultMap="ReviewResultMap">
+        select
+            id,
+            user_id,
+            movie_id,
+            score,
+            content
+        from reviews
+        where user_id = #{userId}
+          and movie_id = #{movieId}
+          and is_deleted = 0
+        order by id desc
+    </select>
+
+    <update id="updateReview">
+        update reviews
+        set score = #{score},
+            content = #{content},
+            updated_at = NOW()
+        where id = #{id}
+          and user_id = #{userId}
+          and is_deleted = 0
+    </update>
+
+    <update id="softDelete">
+        update reviews
+        set is_deleted = 1,
+            updated_at = NOW()
+        where id = #{id}
+          and user_id = #{userId}
+          and is_deleted = 0
+    </update>
+</mapper>

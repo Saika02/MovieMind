@@ -6,6 +6,8 @@ import com.lzz.backend.dto.AuthResponse;
 import com.lzz.backend.dto.LoginRequest;
 import com.lzz.backend.dto.RegisterRequest;
 import com.lzz.backend.service.AuthService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "认证", description = "登录与注册")
 public class AuthController {
     private final AuthService authService;
 
@@ -22,6 +25,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Operation(summary = "用户注册")
     public ApiResponse<AuthResponse> register(@RequestBody RegisterRequest request, HttpSession session) {
         AuthResponse response = authService.register(request);
         bindSession(session, response);
@@ -29,6 +33,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "用户登录")
     public ApiResponse<AuthResponse> login(@RequestBody LoginRequest request, HttpSession session) {
         AuthResponse response = authService.login(request);
         bindSession(session, response);

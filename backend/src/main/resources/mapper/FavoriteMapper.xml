@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzz.backend.mapper.FavoriteMapper">
+    <resultMap id="FavoriteResultMap" type="com.lzz.backend.entity.Favorite">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="movie_id" property="movieId"/>
+    </resultMap>
+
+    <select id="selectByIdAndUser" resultMap="FavoriteResultMap">
+        select
+            id,
+            user_id,
+            movie_id
+        from favorites
+        where id = #{id}
+          and user_id = #{userId}
+          and is_deleted = 0
+    </select>
+
+    <select id="selectByUserAndMovie" resultMap="FavoriteResultMap">
+        select
+            id,
+            user_id,
+            movie_id
+        from favorites
+        where user_id = #{userId}
+          and movie_id = #{movieId}
+          and is_deleted = 0
+        limit 1
+    </select>
+
+    <select id="selectByUser" resultMap="FavoriteResultMap">
+        select
+            id,
+            user_id,
+            movie_id
+        from favorites
+        where user_id = #{userId}
+          and is_deleted = 0
+        order by id desc
+    </select>
+
+    <select id="selectPageByUser" resultMap="FavoriteResultMap">
+        select
+            id,
+            user_id,
+            movie_id
+        from favorites
+        where user_id = #{userId}
+          and is_deleted = 0
+        order by id desc
+    </select>
+
+    <update id="softDelete">
+        update favorites
+        set is_deleted = 1,
+            updated_at = NOW()
+        where id = #{id}
+          and user_id = #{userId}
+          and is_deleted = 0
+    </update>
+</mapper>

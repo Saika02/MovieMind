@@ -39,4 +39,12 @@
           and is_deleted = 0
         limit 1
     </select>
+
+    <update id="updateAvatar">
+        update users
+        set avatar_url = #{avatarUrl},
+            updated_at = NOW()
+        where id = #{userId}
+          and is_deleted = 0
+    </update>
 </mapper>
