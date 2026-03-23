@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzz.backend.mapper.MovieMapper">
+    <resultMap id="MovieResultMap" type="com.lzz.backend.entity.Movie">
+        <id column="id" property="id"/>
+        <result column="tmdb_id" property="tmdbId"/>
+        <result column="title" property="title"/>
+        <result column="overview" property="overview"/>
+        <result column="genres" property="genres"/>
+        <result column="keywords" property="keywords"/>
+        <result column="cast_list" property="castList"/>
+        <result column="producers" property="producers"/>
+        <result column="release_date" property="releaseDate"/>
+        <result column="runtime" property="runtime"/>
+        <result column="production_companies" property="productionCompanies"/>
+        <result column="tmdb_vote_average" property="tmdbVoteAverage"/>
+        <result column="tmdb_vote_count" property="tmdbVoteCount"/>
+        <result column="site_vote_average" property="siteVoteAverage"/>
+        <result column="site_vote_count" property="siteVoteCount"/>
+        <result column="tagline" property="tagline"/>
+        <result column="poster_file" property="posterFile"/>
+    </resultMap>
+
+    <sql id="MovieColumns">
+        id,
+        tmdb_id,
+        title,
+        overview,
+        genres,
+        keywords,
+        cast_list,
+        producers,
+        release_date,
+        runtime,
+        production_companies,
+        tmdb_vote_average,
+        tmdb_vote_count,
+        site_vote_average,
+        site_vote_count,
+        tagline,
+        poster_file
+    </sql>
+
+    <sql id="MovieColumnsWithAlias">
+        m.id,
+        m.tmdb_id,
+        m.title,
+        m.overview,
+        m.genres,
+        m.keywords,
+        m.cast_list,
+        m.producers,
+        m.release_date,
+        m.runtime,
+        m.production_companies,
+        m.tmdb_vote_average,
+        m.tmdb_vote_count,
+        m.site_vote_average,
+        m.site_vote_count,
+        m.tagline,
+        m.poster_file
+    </sql>
+
+    <select id="selectById" resultMap="MovieResultMap">
+        select
+            <include refid="MovieColumns"/>
+        from movies
+        where id = #{id}
+          and is_deleted = 0
+        limit 1
+    </select>
+
+    <select id="selectList" resultMap="MovieResultMap">
+        select
+            <include refid="MovieColumns"/>
+        from movies
+        <where>
+            is_deleted = 0
+            <if test="keyword != null and keyword != ''">
+                and (title ilike concat('%', #{keyword}, '%')
+                    or overview ilike concat('%', #{keyword}, '%')
+                    or genres ilike concat('%', #{keyword}, '%')
+                    or keywords ilike concat('%', #{keyword}, '%')
+                    or cast_list ilike concat('%', #{keyword}, '%')
+                    or producers ilike concat('%', #{keyword}, '%')
+                    or production_companies ilike concat('%', #{keyword}, '%')
+                    or tagline ilike concat('%', #{keyword}, '%'))
+            </if>
+        </where>
+        order by tmdb_vote_average desc nulls last, id desc
+    </select>
+
+    <select id="selectPage" resultMap="MovieResultMap">
+        select
+            <include refid="MovieColumns"/>
+        from movies
+        <where>
+            is_deleted = 0
+            <if test="keyword != null and keyword != ''">
+                and (title ilike concat('%', #{keyword}, '%')
+                    or overview ilike concat('%', #{keyword}, '%')
+                    or genres ilike concat('%', #{keyword}, '%')
+                    or keywords ilike concat('%', #{keyword}, '%')
+                    or cast_list ilike concat('%', #{keyword}, '%')
+                    or producers ilike concat('%', #{keyword}, '%')
+                    or production_companies ilike concat('%', #{keyword}, '%')
+                    or tagline ilike concat('%', #{keyword}, '%'))
+            </if>
+        </where>
+        order by tmdb_vote_average desc nulls last, id desc
+    </select>
+
+    <select id="selectRecommendByEmbedding" resultMap="MovieResultMap">
+        select
+            <include refid="MovieColumnsWithAlias"/>
+        from movies m
+        join movie_embeddings e on e.movie_id = m.id
+        where m.is_deleted = 0
+          and e.is_deleted = 0
+          and e.content_type = #{contentType}
+        order by <![CDATA[e.embedding <=> #{vector}::vector]]>
+        limit #{limit}
+    </select>
+
+    <select id="selectTopByScore" resultMap="MovieResultMap">
+        select
+            <include refid="MovieColumns"/>
+        from movies
+        where is_deleted = 0
+        order by tmdb_vote_average desc nulls last, id desc
+        limit #{limit}
+    </select>
+
+    <select id="selectTopByReleaseDate" resultMap="MovieResultMap">
+        select
+            <include refid="MovieColumns"/>
+        from movies
+        where is_deleted = 0
+        order by release_date desc nulls last, id desc
+        limit #{limit}
+    </select>
+
+    <select id="selectTopByVoteCount" resultMap="MovieResultMap">
+        select
+            <include refid="MovieColumns"/>
+        from movies
+        where is_deleted = 0
+        order by tmdb_vote_count desc nulls last, id desc
+        limit #{limit}
+    </select>
+</mapper>
