@@ -19,6 +19,14 @@ const navItems = copy.nav.items
 
 const avatarUrl = computed(() => normalizePoster(profile.value?.avatarUrl))
 
+function isActiveRoute(target) {
+  if (target === '/') {
+    return route.path === '/'
+  }
+
+  return route.path === target || route.path.startsWith(`${target}/`)
+}
+
 onMounted(() => {
   if (!profile.value) {
     profileStore.fetchProfile().catch(() => {})
@@ -54,7 +62,7 @@ function handleSearch(keyword) {
         :key="item.to"
         :to="item.to"
         class="nav__link"
-        :class="{ 'is-active': route.path === item.to }"
+        :class="{ 'is-active': isActiveRoute(item.to) }"
       >
         {{ item.label }}
       </RouterLink>

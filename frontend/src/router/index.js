@@ -6,6 +6,7 @@ import MovieListView from '../views/MovieListView.vue'
 import MovieDetailView from '../views/MovieDetailView.vue'
 import FavoritesView from '../views/FavoritesView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import RecommendView from '../views/RecommendView.vue'
 
 const routes = [
   {
@@ -36,6 +37,12 @@ const routes = [
     path: '/movies/:id',
     name: 'movie-detail',
     component: MovieDetailView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/recommend',
+    name: 'recommend',
+    component: RecommendView,
     meta: { requiresAuth: true },
   },
   {
