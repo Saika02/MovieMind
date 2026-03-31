@@ -1,5 +1,7 @@
 package com.lzz.backend.service.impl;
 
+import com.lzz.backend.dto.CurrentUserResponse;
+import com.lzz.backend.entity.User;
 import com.lzz.backend.exception.ServiceException;
 import com.lzz.backend.mapper.UserMapper;
 import com.lzz.backend.service.UserService;
@@ -20,6 +22,21 @@ public class UserServiceImpl implements UserService {
     public UserServiceImpl(UserMapper userMapper, @Value("${app.upload-base-dir:${user.dir}/uploads}") String uploadBaseDir) {
         this.userMapper = userMapper;
         this.uploadBaseDir = uploadBaseDir;
+    }
+
+    @Override
+    public CurrentUserResponse getCurrentUser(Long userId) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new ServiceException("用户不存在");
+        }
+        return new CurrentUserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getRole(),
+                user.getAvatarUrl(),
+                user.getBio()
+        );
     }
 
     @Override

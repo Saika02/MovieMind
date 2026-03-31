@@ -12,6 +12,20 @@
         <result column="bio" property="bio"/>
     </resultMap>
 
+    <select id="selectById" resultMap="UserResultMap">
+        select
+            id,
+            username,
+            password_hash,
+            role,
+            avatar_url,
+            bio
+        from users
+        where id = #{id}
+          and is_deleted = 0
+        limit 1
+    </select>
+
     <select id="selectByUsername" resultMap="UserResultMap">
         select
             id,

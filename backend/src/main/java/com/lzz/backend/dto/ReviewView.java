@@ -1,22 +1,21 @@
-package com.lzz.backend.entity;
+package com.lzz.backend.dto;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 @Data
-@TableName("reviews")
-public class Review {
-    @TableId(type = IdType.AUTO)
+public class ReviewView {
     private Long id;
     private Long userId;
     private Long movieId;
+    private String movieTitle;
+    private String moviePosterFile;
     private BigDecimal score;
     private String content;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+    private String username;
+    private String avatarUrl;
 }

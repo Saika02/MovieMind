@@ -12,6 +12,8 @@ public interface ReviewService {
     ReviewResponse get(Long userId, Long id);
     List<ReviewResponse> list(Long userId, Long movieId);
     PageResponse<ReviewResponse> listPage(Long userId, Long movieId, int page, int size);
+    List<ReviewResponse> listMovieReviews(Long movieId);
+    PageResponse<ReviewResponse> listMovieReviewsPage(Long movieId, int page, int size);
     ReviewResponse update(Long userId, Long id, ReviewUpdateRequest request);
     void delete(Long userId, Long id);
 }

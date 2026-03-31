@@ -2,6 +2,7 @@ package com.lzz.backend.service.impl;
 
 import com.lzz.backend.common.GlobalConstant;
 import com.lzz.backend.dto.AuthResponse;
+import com.lzz.backend.dto.AuthSessionResponse;
 import com.lzz.backend.dto.LoginRequest;
 import com.lzz.backend.dto.RegisterRequest;
 import com.lzz.backend.entity.User;
@@ -9,6 +10,7 @@ import com.lzz.backend.exception.ServiceException;
 import com.lzz.backend.mapper.UserMapper;
 import com.lzz.backend.service.AuthService;
 import com.lzz.backend.util.PasswordHasher;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -58,10 +60,57 @@ public class AuthServiceImpl implements AuthService {
         return new AuthResponse(user.getId(), user.getUsername(), user.getRole());
     }
 
+    @Override
+    public AuthSessionResponse getSession(HttpSession session) {
+        if (session == null) {
+            return new AuthSessionResponse(false, null, null, null);
+        }
+        Object userId = session.getAttribute(GlobalConstant.SESSION_USER_ID);
+        Object username = session.getAttribute(GlobalConstant.SESSION_USERNAME);
+        Object role = session.getAttribute(GlobalConstant.SESSION_ROLE);
+        if (userId == null || username == null || role == null) {
+            return new AuthSessionResponse(false, null, null, null);
+        }
+        return new AuthSessionResponse(true, parseLong(userId), String.valueOf(username), parseInteger(role));
+    }
+
+    @Override
+    public void logout(HttpSession session) {
+        if (session != null) {
+            session.invalidate();
+        }
+    }
+
     private String normalize(String value) {
         if (value == null) {
             return null;
         }
         return value.trim();
+    }
+
+    private Long parseLong(Object value) {
+        if (value instanceof Long longValue) {
+            return longValue;
+        }
+        if (value instanceof Integer intValue) {
+            return intValue.longValue();
+        }
+        if (value instanceof String text) {
+            return Long.valueOf(text);
+        }
+        return null;
+    }
+
+    private Integer parseInteger(Object value) {
+        if (value instanceof Integer intValue) {
+            return intValue;
+        }
+        if (value instanceof Long longValue) {
+            return longValue.intValue();
+        }
+        if (value instanceof String text) {
+            return Integer.valueOf(text);
+        }
+        return null;
     }
 }

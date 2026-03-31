@@ -7,13 +7,15 @@
         <id column="id" property="id"/>
         <result column="user_id" property="userId"/>
         <result column="movie_id" property="movieId"/>
+        <result column="type" property="type"/>
     </resultMap>
 
     <select id="selectByIdAndUser" resultMap="FavoriteResultMap">
         select
             id,
             user_id,
-            movie_id
+            movie_id,
+            type
         from favorites
         where id = #{id}
           and user_id = #{userId}
@@ -24,7 +26,8 @@
         select
             id,
             user_id,
-            movie_id
+            movie_id,
+            type
         from favorites
         where user_id = #{userId}
           and movie_id = #{movieId}
@@ -36,7 +39,8 @@
         select
             id,
             user_id,
-            movie_id
+            movie_id,
+            type
         from favorites
         where user_id = #{userId}
           and is_deleted = 0
@@ -47,7 +51,8 @@
         select
             id,
             user_id,
-            movie_id
+            movie_id,
+            type
         from favorites
         where user_id = #{userId}
           and is_deleted = 0

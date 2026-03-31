@@ -3,6 +3,7 @@ package com.lzz.backend.service.impl;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.lzz.backend.dto.FavoriteCreateRequest;
 import com.lzz.backend.dto.FavoriteResponse;
+import com.lzz.backend.dto.FavoriteStatusResponse;
 import com.lzz.backend.dto.PageResponse;
 import com.lzz.backend.entity.Favorite;
 import com.lzz.backend.exception.ServiceException;
@@ -28,11 +29,12 @@ public class FavoriteServiceImpl implements FavoriteService {
         }
         Favorite existing = favoriteMapper.selectByUserAndMovie(userId, request.getMovieId());
         if (existing != null) {
-            throw new ServiceException("已存在");
+            throw new ServiceException("已存在收藏记录");
         }
         Favorite favorite = new Favorite();
         favorite.setUserId(userId);
         favorite.setMovieId(request.getMovieId());
+        favorite.setType(Favorite.TYPE_FAVORITE);
         favoriteMapper.insert(favorite);
         return new FavoriteResponse(favorite.getId(), favorite.getMovieId());
     }
@@ -41,7 +43,7 @@ public class FavoriteServiceImpl implements FavoriteService {
     public FavoriteResponse get(Long userId, Long id) {
         Favorite favorite = favoriteMapper.selectByIdAndUser(id, userId);
         if (favorite == null) {
-            throw new ServiceException("记录不存在");
+            throw new ServiceException("收藏记录不存在");
         }
         return new FavoriteResponse(favorite.getId(), favorite.getMovieId());
     }
@@ -67,10 +69,19 @@ public class FavoriteServiceImpl implements FavoriteService {
     }
 
     @Override
+    public FavoriteStatusResponse getStatus(Long userId, Long movieId) {
+        if (movieId == null) {
+            throw new ServiceException("电影 ID 不能为空");
+        }
+        Favorite favorite = favoriteMapper.selectByUserAndMovie(userId, movieId);
+        return new FavoriteStatusResponse(movieId, favorite != null, favorite == null ? null : favorite.getId());
+    }
+
+    @Override
     public void delete(Long userId, Long id) {
         int updated = favoriteMapper.softDelete(id, userId);
         if (updated == 0) {
-            throw new ServiceException("记录不存在");
+            throw new ServiceException("收藏记录不存在");
         }
     }
 }

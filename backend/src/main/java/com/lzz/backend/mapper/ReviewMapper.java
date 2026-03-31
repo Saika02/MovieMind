@@ -2,6 +2,7 @@ package com.lzz.backend.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.lzz.backend.dto.ReviewView;
 import com.lzz.backend.entity.Review;
 import org.apache.ibatis.annotations.Param;
 
@@ -14,6 +15,14 @@ public interface ReviewMapper extends BaseMapper<Review> {
     List<Review> selectByUserAndMovieList(Long userId, Long movieId);
     Page<Review> selectPageByUser(Page<Review> page, @Param("userId") Long userId);
     Page<Review> selectPageByUserAndMovie(Page<Review> page, @Param("userId") Long userId, @Param("movieId") Long movieId);
+    ReviewView selectViewByIdAndUser(Long id, Long userId);
+    List<ReviewView> selectViewsByUser(Long userId);
+    List<ReviewView> selectViewsByUserAndMovie(Long userId, Long movieId);
+    Page<ReviewView> selectViewPageByUser(Page<ReviewView> page, @Param("userId") Long userId);
+    Page<ReviewView> selectViewPageByUserAndMovie(Page<ReviewView> page, @Param("userId") Long userId, @Param("movieId") Long movieId);
+    List<ReviewView> selectViewsByMovie(Long movieId);
+    Page<ReviewView> selectViewPageByMovie(Page<ReviewView> page, @Param("movieId") Long movieId);
+
     int updateReview(Long id, Long userId, java.math.BigDecimal score, String content);
     int softDelete(Long id, Long userId);
 }

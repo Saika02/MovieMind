@@ -3,13 +3,20 @@ package com.lzz.backend.controller;
 import com.lzz.backend.dto.ApiResponse;
 import com.lzz.backend.dto.FavoriteCreateRequest;
 import com.lzz.backend.dto.FavoriteResponse;
+import com.lzz.backend.dto.FavoriteStatusResponse;
 import com.lzz.backend.dto.PageResponse;
 import com.lzz.backend.service.FavoriteService;
 import com.lzz.backend.util.SessionUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -31,21 +38,28 @@ public class FavoriteController {
     }
 
     @GetMapping("/detail")
-    @Operation(summary = "查询收藏/想看")
+    @Operation(summary = "查询收藏/想看详情")
     public ApiResponse<FavoriteResponse> get(@RequestParam Long id, HttpServletRequest httpRequest) {
         Long userId = SessionUtil.requireUserId(httpRequest);
         return ApiResponse.ok(favoriteService.get(userId, id));
     }
 
     @GetMapping
-    @Operation(summary = "列表查询收藏/想看")
+    @Operation(summary = "列表查询我的收藏/想看")
     public ApiResponse<List<FavoriteResponse>> list(HttpServletRequest httpRequest) {
         Long userId = SessionUtil.requireUserId(httpRequest);
         return ApiResponse.ok(favoriteService.list(userId));
     }
 
+    @GetMapping("/status")
+    @Operation(summary = "查询电影收藏状态")
+    public ApiResponse<FavoriteStatusResponse> status(@RequestParam Long movieId, HttpServletRequest httpRequest) {
+        Long userId = SessionUtil.requireUserId(httpRequest);
+        return ApiResponse.ok(favoriteService.getStatus(userId, movieId));
+    }
+
     @GetMapping("/page")
-    @Operation(summary = "分页查询收藏/想看")
+    @Operation(summary = "分页查询我的收藏/想看")
     public ApiResponse<PageResponse<FavoriteResponse>> page(@RequestParam int page, @RequestParam int size, HttpServletRequest httpRequest) {
         Long userId = SessionUtil.requireUserId(httpRequest);
         return ApiResponse.ok(favoriteService.listPage(userId, page, size));

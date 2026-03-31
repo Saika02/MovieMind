@@ -9,15 +9,51 @@
         <result column="movie_id" property="movieId"/>
         <result column="score" property="score"/>
         <result column="content" property="content"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
     </resultMap>
+
+    <resultMap id="ReviewViewResultMap" type="com.lzz.backend.dto.ReviewView">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="movie_id" property="movieId"/>
+        <result column="movie_title" property="movieTitle"/>
+        <result column="movie_poster_file" property="moviePosterFile"/>
+        <result column="score" property="score"/>
+        <result column="content" property="content"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="username" property="username"/>
+        <result column="avatar_url" property="avatarUrl"/>
+    </resultMap>
+
+    <sql id="ReviewColumns">
+        id,
+        user_id,
+        movie_id,
+        score,
+        content,
+        created_at,
+        updated_at
+    </sql>
+
+    <sql id="ReviewViewColumns">
+        r.id,
+        r.user_id,
+        r.movie_id,
+        m.title as movie_title,
+        m.poster_file as movie_poster_file,
+        r.score,
+        r.content,
+        r.created_at,
+        r.updated_at,
+        u.username,
+        u.avatar_url
+    </sql>
 
     <select id="selectByIdAndUser" resultMap="ReviewResultMap">
         select
-            id,
-            user_id,
-            movie_id,
-            score,
-            content
+            <include refid="ReviewColumns"/>
         from reviews
         where id = #{id}
           and user_id = #{userId}
@@ -26,11 +62,7 @@
 
     <select id="selectByUserAndMovie" resultMap="ReviewResultMap">
         select
-            id,
-            user_id,
-            movie_id,
-            score,
-            content
+            <include refid="ReviewColumns"/>
         from reviews
         where user_id = #{userId}
           and movie_id = #{movieId}
@@ -40,56 +72,120 @@
 
     <select id="selectByUser" resultMap="ReviewResultMap">
         select
-            id,
-            user_id,
-            movie_id,
-            score,
-            content
+            <include refid="ReviewColumns"/>
         from reviews
         where user_id = #{userId}
           and is_deleted = 0
-        order by id desc
+        order by created_at desc, id desc
     </select>
 
     <select id="selectPageByUser" resultMap="ReviewResultMap">
         select
-            id,
-            user_id,
-            movie_id,
-            score,
-            content
+            <include refid="ReviewColumns"/>
         from reviews
         where user_id = #{userId}
           and is_deleted = 0
-        order by id desc
+        order by created_at desc, id desc
     </select>
 
     <select id="selectByUserAndMovieList" resultMap="ReviewResultMap">
         select
-            id,
-            user_id,
-            movie_id,
-            score,
-            content
+            <include refid="ReviewColumns"/>
         from reviews
         where user_id = #{userId}
           and movie_id = #{movieId}
           and is_deleted = 0
-        order by id desc
+        order by created_at desc, id desc
     </select>
 
     <select id="selectPageByUserAndMovie" resultMap="ReviewResultMap">
         select
-            id,
-            user_id,
-            movie_id,
-            score,
-            content
+            <include refid="ReviewColumns"/>
         from reviews
         where user_id = #{userId}
           and movie_id = #{movieId}
           and is_deleted = 0
-        order by id desc
+        order by created_at desc, id desc
+    </select>
+
+    <select id="selectViewByIdAndUser" resultMap="ReviewViewResultMap">
+        select
+            <include refid="ReviewViewColumns"/>
+        from reviews r
+        join users u on u.id = r.user_id and u.is_deleted = 0
+        join movies m on m.id = r.movie_id and m.is_deleted = 0
+        where r.id = #{id}
+          and r.user_id = #{userId}
+          and r.is_deleted = 0
+        limit 1
+    </select>
+
+    <select id="selectViewsByUser" resultMap="ReviewViewResultMap">
+        select
+            <include refid="ReviewViewColumns"/>
+        from reviews r
+        join users u on u.id = r.user_id and u.is_deleted = 0
+        join movies m on m.id = r.movie_id and m.is_deleted = 0
+        where r.user_id = #{userId}
+          and r.is_deleted = 0
+        order by r.created_at desc, r.id desc
+    </select>
+
+    <select id="selectViewsByUserAndMovie" resultMap="ReviewViewResultMap">
+        select
+            <include refid="ReviewViewColumns"/>
+        from reviews r
+        join users u on u.id = r.user_id and u.is_deleted = 0
+        join movies m on m.id = r.movie_id and m.is_deleted = 0
+        where r.user_id = #{userId}
+          and r.movie_id = #{movieId}
+          and r.is_deleted = 0
+        order by r.created_at desc, r.id desc
+    </select>
+
+    <select id="selectViewPageByUser" resultMap="ReviewViewResultMap">
+        select
+            <include refid="ReviewViewColumns"/>
+        from reviews r
+        join users u on u.id = r.user_id and u.is_deleted = 0
+        join movies m on m.id = r.movie_id and m.is_deleted = 0
+        where r.user_id = #{userId}
+          and r.is_deleted = 0
+        order by r.created_at desc, r.id desc
+    </select>
+
+    <select id="selectViewPageByUserAndMovie" resultMap="ReviewViewResultMap">
+        select
+            <include refid="ReviewViewColumns"/>
+        from reviews r
+        join users u on u.id = r.user_id and u.is_deleted = 0
+        join movies m on m.id = r.movie_id and m.is_deleted = 0
+        where r.user_id = #{userId}
+          and r.movie_id = #{movieId}
+          and r.is_deleted = 0
+        order by r.created_at desc, r.id desc
+    </select>
+
+    <select id="selectViewsByMovie" resultMap="ReviewViewResultMap">
+        select
+            <include refid="ReviewViewColumns"/>
+        from reviews r
+        join users u on u.id = r.user_id and u.is_deleted = 0
+        join movies m on m.id = r.movie_id and m.is_deleted = 0
+        where r.movie_id = #{movieId}
+          and r.is_deleted = 0
+        order by r.created_at desc, r.id desc
+    </select>
+
+    <select id="selectViewPageByMovie" resultMap="ReviewViewResultMap">
+        select
+            <include refid="ReviewViewColumns"/>
+        from reviews r
+        join users u on u.id = r.user_id and u.is_deleted = 0
+        join movies m on m.id = r.movie_id and m.is_deleted = 0
+        where r.movie_id = #{movieId}
+          and r.is_deleted = 0
+        order by r.created_at desc, r.id desc
     </select>
 
     <update id="updateReview">
