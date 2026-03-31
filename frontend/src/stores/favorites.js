@@ -33,6 +33,15 @@ export const useFavoriteStore = defineStore('favorites', () => {
     return pageData.value
   }
 
+  async function removeFavorite(id) {
+    busy.value = true
+    try {
+      await favoriteApi.deleteFavorite(id)
+    } finally {
+      busy.value = false
+    }
+  }
+
   return {
     status,
     pageData,
@@ -40,5 +49,6 @@ export const useFavoriteStore = defineStore('favorites', () => {
     fetchStatus,
     fetchPage,
     toggle,
+    removeFavorite,
   }
 })

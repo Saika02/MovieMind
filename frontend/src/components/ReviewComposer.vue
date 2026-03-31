@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, watch } from 'vue'
+import { computed, reactive, watch } from 'vue'
 import { copy } from '../content/copy'
 
 const props = defineProps({
@@ -24,6 +24,8 @@ const form = reactive({
   content: '',
 })
 
+const scoreValue = computed(() => Number(form.score || 0).toFixed(1))
+
 watch(
   () => props.review,
   (value) => {
@@ -46,9 +48,18 @@ function submit() {
 <template>
   <form class="composer" @submit.prevent="submit">
     <div class="composer__row">
-      <label>
-        {{ copy.reviewComposer.score }}
-        <input v-model="form.score" type="number" min="0" max="10" step="0.1" required />
+      <label class="composer__score">
+        <span>{{ copy.reviewComposer.score }}</span>
+        <div class="composer__score-topline">
+          <strong>{{ scoreValue }}</strong>
+          <small>{{ copy.reviewComposer.scoreHint }}</small>
+        </div>
+        <input v-model="form.score" type="range" min="0" max="10" step="0.1" required />
+        <div class="composer__ticks" aria-hidden="true">
+          <span>0</span>
+          <span>5</span>
+          <span>10</span>
+        </div>
       </label>
       <button v-if="review" type="button" class="ghost" @click="$emit('cancel')">{{ copy.reviewComposer.cancelEdit }}</button>
     </div>
@@ -91,14 +102,65 @@ function submit() {
   color: var(--text-muted);
 }
 
-.composer input,
+.composer__score {
+  flex: 1;
+}
+
+.composer__score-topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.composer__score-topline strong {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+
+.composer__score-topline small {
+  color: var(--text-soft);
+  text-align: right;
+}
+
+.composer input:not([type='range']),
 .composer textarea {
   width: 100%;
+}
+
+.composer input[type='range'] {
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  accent-color: var(--accent-gold);
+}
+
+.composer__ticks {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-soft);
+  font-size: 0.8rem;
 }
 
 .ghost {
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.16);
   color: var(--text-primary);
+}
+
+@media (max-width: 720px) {
+  .composer__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .composer__score-topline {
+    flex-direction: column;
+    align-items: start;
+  }
 }
 </style>
