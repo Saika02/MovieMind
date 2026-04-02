@@ -6,13 +6,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-public class AuthInterceptor implements HandlerInterceptor {
+public class AdminInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        Long userId = SessionUtil.requireUserId(request.getSession(false));
-        Integer role = SessionUtil.requireRole(request.getSession(false));
-        request.setAttribute(GlobalConstant.SESSION_USER_ID, userId);
-        request.setAttribute(GlobalConstant.SESSION_ROLE, role);
+        SessionUtil.requireAdmin(request.getSession(false));
+        request.setAttribute(GlobalConstant.SESSION_ROLE, GlobalConstant.ROLE_ADMIN);
         return true;
     }
 }

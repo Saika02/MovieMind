@@ -22,7 +22,12 @@ public interface ReviewMapper extends BaseMapper<Review> {
     Page<ReviewView> selectViewPageByUserAndMovie(Page<ReviewView> page, @Param("userId") Long userId, @Param("movieId") Long movieId);
     List<ReviewView> selectViewsByMovie(Long movieId);
     Page<ReviewView> selectViewPageByMovie(Page<ReviewView> page, @Param("movieId") Long movieId);
+    Page<ReviewView> selectAdminViewPage(Page<ReviewView> page,
+                                         @Param("movieId") Long movieId,
+                                         @Param("userId") Long userId,
+                                         @Param("keyword") String keyword);
 
     int updateReview(Long id, Long userId, java.math.BigDecimal score, String content);
     int softDelete(Long id, Long userId);
+    int adminSoftDelete(@Param("id") Long id);
 }

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lzz.backend.mapper.MovieEmbeddingMapper">
+    <select id="selectActiveIdByMovieIdAndContentType" resultType="java.lang.Long">
+        select id
+        from movie_embeddings
+        where movie_id = #{movieId}
+          and content_type = #{contentType}
+          and is_deleted = 0
+        order by id desc
+        limit 1
+    </select>
+
+    <insert id="insertEmbedding">
+        insert into movie_embeddings (
+            movie_id,
+            content_type,
+            content_id,
+            embedding,
+            model_name
+        )
+        values (
+            #{movieId},
+            #{contentType},
+            #{contentId},
+            #{embedding}::vector,
+            #{modelName}
+        )
+    </insert>
+
+    <update id="updateEmbeddingById">
+        update movie_embeddings
+        set content_id = #{contentId},
+            embedding = #{embedding}::vector,
+            model_name = #{modelName},
+            is_deleted = 0,
+            updated_at = NOW()
+        where id = #{id}
+    </update>
+
+    <update id="softDeleteByMovieId">
+        update movie_embeddings
+        set is_deleted = 1,
+            updated_at = NOW()
+        where movie_id = #{movieId}
+          and is_deleted = 0
+    </update>
+</mapper>

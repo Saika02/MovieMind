@@ -150,4 +150,12 @@
         order by tmdb_vote_count desc nulls last, id desc
         limit #{limit}
     </select>
+
+    <update id="softDelete">
+        update movies
+        set is_deleted = 1,
+            updated_at = NOW()
+        where id = #{id}
+          and is_deleted = 0
+    </update>
 </mapper>

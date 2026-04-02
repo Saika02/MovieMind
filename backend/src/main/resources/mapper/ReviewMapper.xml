@@ -188,6 +188,31 @@
         order by r.created_at desc, r.id desc
     </select>
 
+    <select id="selectAdminViewPage" resultMap="ReviewViewResultMap">
+        select
+            <include refid="ReviewViewColumns"/>
+        from reviews r
+        join users u on u.id = r.user_id and u.is_deleted = 0
+        join movies m on m.id = r.movie_id and m.is_deleted = 0
+        <where>
+            r.is_deleted = 0
+            <if test="movieId != null">
+                and r.movie_id = #{movieId}
+            </if>
+            <if test="userId != null">
+                and r.user_id = #{userId}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                and (
+                    r.content ilike concat('%', #{keyword}, '%')
+                    or u.username ilike concat('%', #{keyword}, '%')
+                    or m.title ilike concat('%', #{keyword}, '%')
+                )
+            </if>
+        </where>
+        order by r.created_at desc, r.id desc
+    </select>
+
     <update id="updateReview">
         update reviews
         set score = #{score},
@@ -204,6 +229,14 @@
             updated_at = NOW()
         where id = #{id}
           and user_id = #{userId}
+          and is_deleted = 0
+    </update>
+
+    <update id="adminSoftDelete">
+        update reviews
+        set is_deleted = 1,
+            updated_at = NOW()
+        where id = #{id}
           and is_deleted = 0
     </update>
 </mapper>
