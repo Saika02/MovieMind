@@ -15,7 +15,7 @@ const profileStore = useProfileStore()
 const { session } = storeToRefs(authStore)
 const { profile } = storeToRefs(profileStore)
 
-const navItems = copy.nav.items
+const navItems = computed(() => copy.nav.items)
 
 const avatarUrl = computed(() => normalizePoster(profile.value?.avatarUrl))
 
@@ -35,7 +35,7 @@ onMounted(() => {
 
 async function handleLogout() {
   await authStore.logout()
-  router.push('/login')
+  router.push(route.path.startsWith('/admin') ? '/admin/login' : '/login')
 }
 
 function handleSearch(keyword) {

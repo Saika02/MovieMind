@@ -16,6 +16,7 @@ export const useAuthStore = defineStore('auth', () => {
   const flashType = ref('info')
 
   const loggedIn = computed(() => Boolean(session.value.loggedIn))
+  const isAdmin = computed(() => Number(session.value.role) === 1)
 
   function setFlash(message, type = 'info') {
     flashMessage.value = message
@@ -106,6 +107,7 @@ export const useAuthStore = defineStore('auth', () => {
     pending,
     session,
     loggedIn,
+    isAdmin,
     flashMessage,
     flashType,
     initialize,

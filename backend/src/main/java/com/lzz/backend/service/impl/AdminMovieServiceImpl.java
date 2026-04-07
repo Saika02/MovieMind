@@ -10,19 +10,30 @@ import com.lzz.backend.exception.ServiceException;
 import com.lzz.backend.mapper.MovieMapper;
 import com.lzz.backend.service.AdminMovieService;
 import com.lzz.backend.service.MovieEmbeddingService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AdminMovieServiceImpl implements AdminMovieService {
     private final MovieMapper movieMapper;
     private final MovieEmbeddingService movieEmbeddingService;
+    private final String uploadBaseDir;
 
-    public AdminMovieServiceImpl(MovieMapper movieMapper, MovieEmbeddingService movieEmbeddingService) {
+    public AdminMovieServiceImpl(MovieMapper movieMapper,
+                                 MovieEmbeddingService movieEmbeddingService,
+                                 @Value("${app.upload-base-dir:${user.dir}/uploads}") String uploadBaseDir) {
         this.movieMapper = movieMapper;
         this.movieEmbeddingService = movieEmbeddingService;
+        this.uploadBaseDir = uploadBaseDir;
     }
 
     @Override
@@ -81,6 +92,30 @@ public class AdminMovieServiceImpl implements AdminMovieService {
         movieEmbeddingService.deleteMovieEmbedding(id);
     }
 
+    @Override
+    public String uploadPoster(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new ServiceException("海报文件不能为空");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new ServiceException("仅支持图片文件");
+        }
+
+        String extension = resolveExtension(file.getOriginalFilename());
+        String filename = "movie_" + UUID.randomUUID() + extension;
+
+        try {
+            Path dir = Paths.get(uploadBaseDir).resolve("posters").toAbsolutePath();
+            Files.createDirectories(dir);
+            Path target = dir.resolve(filename);
+            file.transferTo(target.toFile());
+            return "/uploads/posters/" + filename;
+        } catch (Exception ex) {
+            throw new ServiceException("海报上传失败");
+        }
+    }
+
     private Movie requireMovie(Long id) {
         if (id == null) {
             throw new ServiceException("电影 ID 不能为空");
@@ -96,9 +131,10 @@ public class AdminMovieServiceImpl implements AdminMovieService {
         if (request == null) {
             throw new ServiceException("参数不完整");
         }
+
         String title = normalizeRequired(request.getTitle(), "电影标题不能为空");
         Movie movie = target == null ? new Movie() : target;
-        movie.setTmdbId(request.getTmdbId());
+        movie.setTmdbId(null);
         movie.setTitle(title);
         movie.setOverview(normalizeOptional(request.getOverview()));
         movie.setGenres(normalizeOptional(request.getGenres()));
@@ -108,13 +144,32 @@ public class AdminMovieServiceImpl implements AdminMovieService {
         movie.setReleaseDate(request.getReleaseDate());
         movie.setRuntime(request.getRuntime());
         movie.setProductionCompanies(normalizeOptional(request.getProductionCompanies()));
-        movie.setTmdbVoteAverage(request.getTmdbVoteAverage());
-        movie.setTmdbVoteCount(request.getTmdbVoteCount());
-        movie.setSiteVoteAverage(request.getSiteVoteAverage());
-        movie.setSiteVoteCount(request.getSiteVoteCount());
+        movie.setTmdbVoteAverage(defaultScore(target == null ? null : target.getTmdbVoteAverage()));
+        movie.setTmdbVoteCount(defaultCount(target == null ? null : target.getTmdbVoteCount()));
+        movie.setSiteVoteAverage(defaultScore(target == null ? null : target.getSiteVoteAverage()));
+        movie.setSiteVoteCount(defaultCount(target == null ? null : target.getSiteVoteCount()));
         movie.setTagline(normalizeOptional(request.getTagline()));
         movie.setPosterFile(normalizeOptional(request.getPosterFile()));
         return movie;
+    }
+
+    private String resolveExtension(String originalFilename) {
+        if (originalFilename == null) {
+            return ".jpg";
+        }
+        int dot = originalFilename.lastIndexOf('.');
+        if (dot < 0) {
+            return ".jpg";
+        }
+        return originalFilename.substring(dot);
+    }
+
+    private BigDecimal defaultScore(BigDecimal existingValue) {
+        return existingValue == null ? BigDecimal.ZERO : existingValue;
+    }
+
+    private Integer defaultCount(Integer existingValue) {
+        return existingValue == null ? 0 : existingValue;
     }
 
     private String normalizeRequired(String value, String message) {

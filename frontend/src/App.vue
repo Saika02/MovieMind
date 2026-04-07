@@ -3,6 +3,7 @@ import { computed, onMounted } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import AppShell from './components/AppShell.vue'
+import AdminShell from './components/AdminShell.vue'
 import FormNotice from './components/FormNotice.vue'
 import { useAuthStore } from './stores/auth'
 import { copy } from './content/copy'
@@ -12,6 +13,7 @@ const authStore = useAuthStore()
 const { bootstrapped, flashMessage, flashType } = storeToRefs(authStore)
 
 const isAuthRoute = computed(() => route.meta.layout === 'auth')
+const isAdminRoute = computed(() => route.meta.layout === 'admin')
 
 onMounted(() => {
   authStore.initialize()
@@ -32,6 +34,9 @@ onMounted(() => {
       @close="authStore.clearFlash()"
     />
     <RouterView v-if="isAuthRoute" />
+    <AdminShell v-else-if="isAdminRoute">
+      <RouterView />
+    </AdminShell>
     <AppShell v-else>
       <RouterView />
     </AppShell>

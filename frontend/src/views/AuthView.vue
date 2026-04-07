@@ -17,19 +17,70 @@ const form = reactive({
   password: '',
 })
 
-const pageCopy = computed(() => (mode.value === 'login' ? copy.auth.login : copy.auth.register))
+const pageMap = {
+  login: {
+    title: copy.auth.login.title,
+    subtitle: copy.auth.login.subtitle,
+    submit: copy.auth.login.submit,
+    switchLabel: copy.auth.login.switchLabel,
+    switchAction: copy.auth.login.switchAction,
+    switchTo: copy.auth.login.switchTo,
+    welcome: copy.auth.login.welcome,
+    brand: 'MovieMind',
+    lead: copy.auth.lead,
+    simple: false,
+    redirectAfterSuccess: '/',
+  },
+  register: {
+    title: copy.auth.register.title,
+    subtitle: copy.auth.register.subtitle,
+    submit: copy.auth.register.submit,
+    switchLabel: copy.auth.register.switchLabel,
+    switchAction: copy.auth.register.switchAction,
+    switchTo: copy.auth.register.switchTo,
+    welcome: copy.auth.register.welcome,
+    brand: 'MovieMind',
+    lead: copy.auth.lead,
+    simple: false,
+    redirectAfterSuccess: '/',
+  },
+  'admin-login': {
+    title: '管理员登录',
+    subtitle: '登录后台管理平台，维护电影资料与评论内容。',
+    submit: '登录后台',
+    switchLabel: '需要前台用户入口？',
+    switchAction: '前往普通登录',
+    switchTo: '/login',
+    welcome: '后台管理平台',
+    brand: 'MovieMind Admin',
+    lead: '仅管理员账号可登录。登录成功后将进入独立后台，不与用户前台界面混合。',
+    simple: true,
+    redirectAfterSuccess: '/admin/movies',
+  },
+}
+
+const pageCopy = computed(() => pageMap[mode.value] || pageMap.login)
+const isAdminMode = computed(() => mode.value === 'admin-login')
 
 async function submit() {
   errorMessage.value = ''
 
   try {
-    if (mode.value === 'login') {
-      await authStore.login(form)
-    } else {
+    if (mode.value === 'register') {
       await authStore.register(form)
+      router.push(route.query.redirect || pageCopy.value.redirectAfterSuccess)
+      return
     }
 
-    router.push(route.query.redirect || '/')
+    await authStore.login(form)
+
+    if (isAdminMode.value && !authStore.isAdmin) {
+      await authStore.logout()
+      errorMessage.value = '该账号无管理员权限'
+      return
+    }
+
+    router.push(route.query.redirect || pageCopy.value.redirectAfterSuccess)
   } catch (error) {
     errorMessage.value = error.message
   }
@@ -37,19 +88,18 @@ async function submit() {
 </script>
 
 <template>
-  <section class="auth">
-    <div class="auth__poster">
+  <section class="auth" :class="{ 'auth--simple': pageCopy.simple }">
+    <div v-if="!pageCopy.simple" class="auth__poster">
       <div class="auth__overlay">
-        <span>{{ pageCopy.eyebrow }}</span>
         <h1>{{ pageCopy.title }}</h1>
         <p>{{ pageCopy.subtitle }}</p>
       </div>
     </div>
 
     <div class="auth__panel">
-      <div class="auth__brand">MovieMind</div>
+      <div class="auth__brand">{{ pageCopy.brand }}</div>
       <h2>{{ pageCopy.welcome }}</h2>
-      <p class="auth__lead">{{ copy.auth.lead }}</p>
+      <p class="auth__lead">{{ pageCopy.lead }}</p>
 
       <FormNotice v-if="errorMessage" :message="errorMessage" type="error" @close="errorMessage = ''" />
 
@@ -79,10 +129,17 @@ async function submit() {
 .auth {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 1.35fr minmax(340px, 420px);
+  grid-template-columns: 1.25fr minmax(340px, 420px);
   background:
     radial-gradient(circle at 20% 20%, rgba(211, 164, 74, 0.2), transparent 24%),
     linear-gradient(145deg, #06090d 0%, #0e1620 44%, #090c12 100%);
+}
+
+.auth--simple {
+  grid-template-columns: minmax(360px, 460px);
+  justify-content: center;
+  align-content: center;
+  background: #f3f4f6;
 }
 
 .auth__poster {
@@ -97,24 +154,16 @@ async function submit() {
 .auth__overlay {
   position: absolute;
   inset: auto auto 3rem 3rem;
-  max-width: 32rem;
-}
-
-.auth__overlay span {
-  display: inline-block;
-  margin-bottom: 1rem;
-  color: var(--accent-gold);
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
+  max-width: 30rem;
 }
 
 .auth__overlay h1 {
-  margin-bottom: 1rem;
+  margin: 0 0 1rem;
   font-size: clamp(2.6rem, 5vw, 4.7rem);
 }
 
 .auth__overlay p {
-  max-width: 26rem;
+  margin: 0;
   color: rgba(244, 239, 232, 0.78);
 }
 
@@ -127,11 +176,34 @@ async function submit() {
   backdrop-filter: blur(22px);
 }
 
+.auth--simple .auth__panel {
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  background: #ffffff;
+  backdrop-filter: none;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
 .auth__brand {
   font-family: var(--font-display);
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--accent-gold);
+}
+
+.auth--simple .auth__brand {
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+  text-transform: none;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.auth--simple h2,
+.auth--simple label,
+.auth--simple .auth__lead,
+.auth--simple .auth__switch {
+  color: #111827;
 }
 
 .auth__lead,
@@ -150,13 +222,25 @@ async function submit() {
   color: var(--text-muted);
 }
 
+.auth--simple input {
+  background: #ffffff;
+  border-color: #d1d5db;
+  color: #111827;
+}
+
+.auth--simple button {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: none;
+}
+
 @media (max-width: 960px) {
   .auth {
     grid-template-columns: 1fr;
   }
 
   .auth__poster {
-    min-height: 45vh;
+    min-height: 42vh;
   }
 
   .auth__overlay {

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/admin/movies")
@@ -52,6 +53,12 @@ public class AdminMovieController {
     @Operation(summary = "管理员修改电影")
     public ApiResponse<MovieDetailResponse> update(@PathVariable Long id, @RequestBody AdminMovieUpsertRequest request) {
         return ApiResponse.ok(adminMovieService.update(id, request));
+    }
+
+    @PostMapping("/upload-poster")
+    @Operation(summary = "管理员上传电影海报")
+    public ApiResponse<String> uploadPoster(@RequestParam("file") MultipartFile file) {
+        return ApiResponse.ok(adminMovieService.uploadPoster(file));
     }
 
     @DeleteMapping("/{id}")
