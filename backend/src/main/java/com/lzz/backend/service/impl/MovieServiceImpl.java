@@ -15,6 +15,10 @@ import java.util.stream.Collectors;
 
 @Service
 public class MovieServiceImpl implements MovieService {
+    private static final String FEATURED_SCENE = "featured";
+    private static final String SORT_POPULAR = "popular";
+    private static final String SORT_RATING = "rating";
+    private static final String SORT_LATEST = "latest";
     private final MovieMapper movieMapper;
 
     public MovieServiceImpl(MovieMapper movieMapper) {
@@ -43,12 +47,15 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
-    public PageResponse<MovieListResponse> listPage(String keyword, int page, int size) {
+    public PageResponse<MovieListResponse> listPage(String keyword, String sort, String scene, int page, int size) {
         if (page < 1 || size < 1 || size > 100) {
             throw new ServiceException("分页参数不合法");
         }
         String normalized = normalizeKeyword(keyword);
-        Page<Movie> pageData = movieMapper.selectPage(new Page<>(page, size), normalized);
+        String normalizedSort = normalizeSort(sort);
+        Page<Movie> pageData = FEATURED_SCENE.equalsIgnoreCase(scene == null ? "" : scene)
+                ? movieMapper.selectFeaturedPage(new Page<>(page, size))
+                : movieMapper.selectBrowsePage(new Page<>(page, size), normalized, normalizedSort);
         List<MovieListResponse> items = pageData.getRecords().stream()
                 .map(this::toListResponse)
                 .collect(Collectors.toList());
@@ -61,6 +68,17 @@ public class MovieServiceImpl implements MovieService {
         }
         String normalized = keyword.trim();
         return normalized.isEmpty() ? null : normalized;
+    }
+
+    private String normalizeSort(String sort) {
+        if (sort == null) {
+            return SORT_POPULAR;
+        }
+        String normalized = sort.trim().toLowerCase();
+        if (SORT_RATING.equals(normalized) || SORT_LATEST.equals(normalized)) {
+            return normalized;
+        }
+        return SORT_POPULAR;
     }
 
     private MovieListResponse toListResponse(Movie movie) {

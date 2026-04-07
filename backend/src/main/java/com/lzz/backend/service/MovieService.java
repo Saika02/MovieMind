@@ -9,5 +9,5 @@ import java.util.List;
 public interface MovieService {
     MovieDetailResponse get(Long id);
     List<MovieListResponse> list(String keyword);
-    PageResponse<MovieListResponse> listPage(String keyword, int page, int size);
+    PageResponse<MovieListResponse> listPage(String keyword, String sort, String scene, int page, int size);
 }

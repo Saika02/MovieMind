@@ -74,7 +74,7 @@ function normalizeNumber(value) {
     <section class="admin-card">
       <div class="admin-card__title">
         <h2>筛选条件</h2>
-        <span>按关键词、电影 ID、用户 ID 查询评论</span>
+        <span>按关键词、电影或用户快速找到对应评论。</span>
       </div>
 
       <div class="admin-filters">

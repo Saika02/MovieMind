@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { computed, reactive, ref, onMounted } from 'vue'
 import PaginationBar from '../components/PaginationBar.vue'
 import EmptyState from '../components/EmptyState.vue'
 import { formatDate, formatScore } from '../utils/formatters'
@@ -24,8 +24,18 @@ const submitting = ref(false)
 const deletingId = ref(null)
 const selectedMovieId = ref(null)
 const uploadingPoster = ref(false)
+const uploadedPosterName = ref('')
 
 const form = reactive(createEmptyMovieForm())
+const posterHint = computed(() => {
+  if (uploadingPoster.value) {
+    return '海报上传中...'
+  }
+  if (uploadedPosterName.value) {
+    return `当前海报：${uploadedPosterName.value}`
+  }
+  return '选择一张图片作为海报'
+})
 
 onMounted(() => {
   loadMovies()
@@ -57,6 +67,7 @@ async function editMovie(id) {
 function createMovie() {
   selectedMovieId.value = null
   Object.assign(form, createEmptyMovieForm())
+  uploadedPosterName.value = ''
 }
 
 async function submitMovie() {
@@ -104,6 +115,7 @@ async function uploadPoster(event) {
   uploadingPoster.value = true
   try {
     form.posterFile = await adminApi.uploadAdminMoviePoster(file)
+    uploadedPosterName.value = file.name
     authStore.setFlash('海报上传成功', 'success')
   } finally {
     uploadingPoster.value = false
@@ -123,6 +135,7 @@ function applyMovie(detail) {
   form.productionCompanies = detail.productionCompanies ?? ''
   form.tagline = detail.tagline ?? ''
   form.posterFile = detail.posterFile ?? ''
+  uploadedPosterName.value = extractFilename(form.posterFile)
 }
 
 function buildPayload() {
@@ -155,6 +168,14 @@ function createEmptyMovieForm() {
     tagline: '',
     posterFile: '',
   }
+}
+
+function extractFilename(path) {
+  if (!path) return ''
+  const normalized = String(path).trim()
+  if (!normalized) return ''
+  const segments = normalized.split('/')
+  return segments[segments.length - 1] || ''
 }
 
 function normalizeString(value) {
@@ -227,7 +248,7 @@ function normalizeNumber(value) {
         <EmptyState
           v-else-if="!loading"
           title="暂无电影数据"
-          description="可点击右上角“新增电影”创建新的电影记录。"
+          description="点击右上角“新增电影”，先把第一部电影加进来。"
         />
 
         <div class="admin-page__pagination">
@@ -244,7 +265,7 @@ function normalizeNumber(value) {
       <section class="admin-card">
         <div class="admin-card__title">
           <h2>{{ selectedMovieId ? '编辑电影' : '新增电影' }}</h2>
-          <span>保存后将同步更新推荐向量</span>
+          <span>补充好资料后，前台会更方便展示和检索。</span>
         </div>
 
         <form class="admin-form" @submit.prevent="submitMovie">
@@ -260,9 +281,7 @@ function normalizeNumber(value) {
             <label class="admin-page__field admin-page__field--wide">
               <span>电影海报</span>
               <input type="file" accept="image/*" @change="uploadPoster" />
-              <small class="admin-page__hint">
-                {{ uploadingPoster ? '海报上传中...' : form.posterFile ? '已上传海报文件' : '请选择图片文件上传' }}
-              </small>
+              <small class="admin-page__hint">{{ posterHint }}</small>
             </label>
             <label class="admin-page__field admin-page__field--wide">
               <span>简介</span>

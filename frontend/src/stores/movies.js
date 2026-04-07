@@ -18,17 +18,22 @@ export const useMovieStore = defineStore('movies', () => {
   async function fetchFeatured() {
     loading.value = true
     try {
-      featured.value = await movieApi.getMoviePage({ page: 1, size: 8 })
+      featured.value = await movieApi.getMoviePage({ page: 1, size: 8, scene: 'featured' })
       return featured.value
     } finally {
       loading.value = false
     }
   }
 
-  async function fetchList({ page = 1, size = 12, keyword = '' } = {}) {
+  async function fetchList({ page = 1, size = 12, keyword = '', sort = 'popular' } = {}) {
     listing.value = true
     try {
-      const response = await movieApi.getMoviePage({ page, size, keyword: keyword || undefined })
+      const response = await movieApi.getMoviePage({
+        page,
+        size,
+        keyword: keyword || undefined,
+        sort,
+      })
       list.value = response.items ?? []
       pagination.page = response.page
       pagination.size = response.size

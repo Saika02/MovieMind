@@ -10,7 +10,8 @@ import java.util.List;
 public interface MovieMapper extends BaseMapper<Movie> {
     Movie selectById(Long id);
     List<Movie> selectList(@Param("keyword") String keyword);
-    Page<Movie> selectPage(Page<Movie> page, @Param("keyword") String keyword);
+    Page<Movie> selectBrowsePage(Page<Movie> page, @Param("keyword") String keyword, @Param("sort") String sort);
+    Page<Movie> selectFeaturedPage(Page<Movie> page);
     List<Movie> selectRecommendByEmbedding(@Param("vector") String vector, @Param("contentType") Integer contentType, @Param("limit") int limit);
     List<Movie> selectTopByScore(@Param("limit") int limit);
     List<Movie> selectTopByReleaseDate(@Param("limit") int limit);

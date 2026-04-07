@@ -92,7 +92,7 @@
         order by tmdb_vote_average desc nulls last, id desc
     </select>
 
-    <select id="selectPage" resultMap="MovieResultMap">
+    <select id="selectBrowsePage" resultMap="MovieResultMap">
         select
             <include refid="MovieColumns"/>
         from movies
@@ -109,7 +109,60 @@
                     or tagline ilike concat('%', #{keyword}, '%'))
             </if>
         </where>
-        order by tmdb_vote_average desc nulls last, id desc
+        order by
+        <choose>
+            <when test="sort == 'rating'">
+                (
+                    (
+                        coalesce(tmdb_vote_count, 0)::numeric
+                        / (coalesce(tmdb_vote_count, 0)::numeric + 200)
+                    ) * coalesce(tmdb_vote_average, 0)
+                    +
+                    (
+                        200
+                        / (coalesce(tmdb_vote_count, 0)::numeric + 200)
+                    ) * 6.8
+                ) desc,
+                tmdb_vote_count desc nulls last,
+                release_date desc nulls last,
+                id desc
+            </when>
+            <when test="sort == 'latest'">
+                release_date desc nulls last,
+                tmdb_vote_count desc nulls last,
+                tmdb_vote_average desc nulls last,
+                id desc
+            </when>
+            <otherwise>
+                tmdb_vote_count desc nulls last,
+                tmdb_vote_average desc nulls last,
+                release_date desc nulls last,
+                id desc
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="selectFeaturedPage" resultMap="MovieResultMap">
+        select
+            <include refid="MovieColumns"/>
+        from movies
+        where is_deleted = 0
+          and coalesce(tmdb_vote_count, 0) >= 50
+        order by
+            (
+                (
+                    coalesce(tmdb_vote_count, 0)::numeric
+                    / (coalesce(tmdb_vote_count, 0)::numeric + 200)
+                ) * coalesce(tmdb_vote_average, 0)
+                +
+                (
+                    200
+                    / (coalesce(tmdb_vote_count, 0)::numeric + 200)
+                ) * 6.8
+            ) desc,
+            tmdb_vote_count desc nulls last,
+            release_date desc nulls last,
+            id desc
     </select>
 
     <select id="selectRecommendByEmbedding" resultMap="MovieResultMap">

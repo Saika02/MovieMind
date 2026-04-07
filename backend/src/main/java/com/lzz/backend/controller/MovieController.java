@@ -42,8 +42,13 @@ public class MovieController {
 
     @GetMapping("/page")
     @Operation(summary = "分页查询电影")
-    public ApiResponse<PageResponse<MovieListResponse>> page(@RequestParam int page, @RequestParam int size, @RequestParam(required = false) String keyword, HttpServletRequest httpRequest) {
+    public ApiResponse<PageResponse<MovieListResponse>> page(@RequestParam int page,
+                                                             @RequestParam int size,
+                                                             @RequestParam(required = false) String keyword,
+                                                             @RequestParam(required = false) String sort,
+                                                             @RequestParam(required = false) String scene,
+                                                             HttpServletRequest httpRequest) {
         SessionUtil.requireUserId(httpRequest);
-        return ApiResponse.ok(movieService.listPage(keyword, page, size));
+        return ApiResponse.ok(movieService.listPage(keyword, sort, scene, page, size));
     }
 }

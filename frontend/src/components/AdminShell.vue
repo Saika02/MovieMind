@@ -14,7 +14,7 @@ const navItems = [
   { label: '评论管理', to: '/admin/reviews' },
 ]
 
-const pageTitle = computed(() => route.meta.adminTitle || '后台管理平台')
+const pageTitle = computed(() => route.meta.adminTitle || '管理中心')
 
 function isActive(target) {
   return route.path === target || route.path.startsWith(`${target}/`)
@@ -31,7 +31,7 @@ async function handleLogout() {
     <aside class="admin-shell__sidebar">
       <div class="admin-shell__brand">
         <strong>MovieMind</strong>
-        <span>后台管理平台</span>
+        <span>管理中心</span>
       </div>
 
       <nav class="admin-shell__nav">
@@ -51,7 +51,7 @@ async function handleLogout() {
       <header class="admin-shell__header">
         <div>
           <h1>{{ pageTitle }}</h1>
-          <p>管理员可在此维护电影资料与评论内容。</p>
+          <p>在这里整理电影内容，处理评论记录。</p>
         </div>
 
         <div class="admin-shell__account">

@@ -48,7 +48,7 @@ public class AdminMovieServiceImpl implements AdminMovieService {
             throw new ServiceException("分页参数不合法");
         }
         String normalizedKeyword = normalizeKeyword(keyword);
-        Page<Movie> pageData = movieMapper.selectPage(new Page<>(page, size), normalizedKeyword);
+        Page<Movie> pageData = movieMapper.selectBrowsePage(new Page<>(page, size), normalizedKeyword, "popular");
         List<MovieListResponse> items = pageData.getRecords().stream()
                 .map(this::toListResponse)
                 .toList();
