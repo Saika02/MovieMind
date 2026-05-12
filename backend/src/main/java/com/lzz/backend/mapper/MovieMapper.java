@@ -16,5 +16,6 @@ public interface MovieMapper extends BaseMapper<Movie> {
     List<Movie> selectTopByScore(@Param("limit") int limit);
     List<Movie> selectTopByReleaseDate(@Param("limit") int limit);
     List<Movie> selectTopByVoteCount(@Param("limit") int limit);
+    int refreshSiteVoteStats(@Param("id") Long id);
     int softDelete(@Param("id") Long id);
 }

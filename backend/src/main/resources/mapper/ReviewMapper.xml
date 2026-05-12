@@ -70,6 +70,16 @@
         limit 1
     </select>
 
+    <select id="selectAnyByUserAndMovie" resultMap="ReviewResultMap">
+        select
+            <include refid="ReviewColumns"/>
+        from reviews
+        where user_id = #{userId}
+          and movie_id = #{movieId}
+        order by id desc
+        limit 1
+    </select>
+
     <select id="selectByUser" resultMap="ReviewResultMap">
         select
             <include refid="ReviewColumns"/>
@@ -221,6 +231,16 @@
         where id = #{id}
           and user_id = #{userId}
           and is_deleted = 0
+    </update>
+
+    <update id="restoreReview">
+        update reviews
+        set score = #{score},
+            content = #{content},
+            is_deleted = 0,
+            updated_at = NOW()
+        where id = #{id}
+          and user_id = #{userId}
     </update>
 
     <update id="softDelete">

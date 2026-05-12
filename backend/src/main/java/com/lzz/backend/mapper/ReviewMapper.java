@@ -11,6 +11,7 @@ import java.util.List;
 public interface ReviewMapper extends BaseMapper<Review> {
     Review selectByIdAndUser(Long id, Long userId);
     Review selectByUserAndMovie(Long userId, Long movieId);
+    Review selectAnyByUserAndMovie(Long userId, Long movieId);
     List<Review> selectByUser(Long userId);
     List<Review> selectByUserAndMovieList(Long userId, Long movieId);
     Page<Review> selectPageByUser(Page<Review> page, @Param("userId") Long userId);
@@ -28,6 +29,7 @@ public interface ReviewMapper extends BaseMapper<Review> {
                                          @Param("keyword") String keyword);
 
     int updateReview(Long id, Long userId, java.math.BigDecimal score, String content);
+    int restoreReview(Long id, Long userId, java.math.BigDecimal score, String content);
     int softDelete(Long id, Long userId);
     int adminSoftDelete(@Param("id") Long id);
 }

@@ -16,6 +16,7 @@ const { session } = storeToRefs(authStore)
 const { profile } = storeToRefs(profileStore)
 
 const navItems = computed(() => copy.nav.items)
+const showGlobalSearch = computed(() => route.name !== 'movies')
 
 const avatarUrl = computed(() => normalizePoster(profile.value?.avatarUrl))
 
@@ -69,7 +70,7 @@ function handleSearch(keyword) {
     </nav>
 
     <div class="nav__actions">
-      <SearchBar compact @search="handleSearch" />
+      <SearchBar v-if="showGlobalSearch" compact @search="handleSearch" />
       <RouterLink to="/profile" class="nav__profile">
         <img :src="avatarUrl" :alt="copy.common.userAvatarAlt" />
         <span>{{ profile?.username || session.username || copy.brand.memberFallback }}</span>

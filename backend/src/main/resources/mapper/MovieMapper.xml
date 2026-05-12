@@ -211,4 +211,21 @@
         where id = #{id}
           and is_deleted = 0
     </update>
+
+    <update id="refreshSiteVoteStats">
+        update movies
+        set site_vote_average = stats.avg_score,
+            site_vote_count = stats.review_count,
+            updated_at = NOW()
+        from (
+            select
+                cast(coalesce(avg(score), 0) as numeric(4, 2)) as avg_score,
+                cast(count(*) as integer) as review_count
+            from reviews
+            where movie_id = #{id}
+              and is_deleted = 0
+        ) stats
+        where id = #{id}
+          and is_deleted = 0
+    </update>
 </mapper>

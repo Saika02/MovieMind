@@ -8,9 +8,12 @@ import com.lzz.backend.dto.ReviewUpdateRequest;
 import com.lzz.backend.dto.ReviewView;
 import com.lzz.backend.entity.Review;
 import com.lzz.backend.exception.ServiceException;
+import com.lzz.backend.mapper.MovieMapper;
 import com.lzz.backend.mapper.ReviewMapper;
 import com.lzz.backend.service.ReviewService;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -18,26 +21,40 @@ import java.util.stream.Collectors;
 @Service
 public class ReviewServiceImpl implements ReviewService {
     private final ReviewMapper reviewMapper;
+    private final MovieMapper movieMapper;
 
-    public ReviewServiceImpl(ReviewMapper reviewMapper) {
+    public ReviewServiceImpl(ReviewMapper reviewMapper, MovieMapper movieMapper) {
         this.reviewMapper = reviewMapper;
+        this.movieMapper = movieMapper;
     }
 
     @Override
+    @Transactional
     public ReviewResponse create(Long userId, ReviewCreateRequest request) {
         if (request == null || request.getMovieId() == null || request.getScore() == null || request.getContent() == null) {
             throw new ServiceException("参数不完整");
         }
-        Review existing = reviewMapper.selectByUserAndMovie(userId, request.getMovieId());
-        if (existing != null) {
+        Review activeReview = reviewMapper.selectByUserAndMovie(userId, request.getMovieId());
+        if (activeReview != null) {
             throw new ServiceException("已存在点评记录");
+        }
+        Review deletedReview = reviewMapper.selectAnyByUserAndMovie(userId, request.getMovieId());
+        if (deletedReview != null) {
+            reviewMapper.restoreReview(deletedReview.getId(), userId, request.getScore(), request.getContent());
+            refreshMovieSiteVoteStats(request.getMovieId());
+            return toResponse(reviewMapper.selectViewByIdAndUser(deletedReview.getId(), userId));
         }
         Review review = new Review();
         review.setUserId(userId);
         review.setMovieId(request.getMovieId());
         review.setScore(request.getScore());
         review.setContent(request.getContent());
-        reviewMapper.insert(review);
+        try {
+            reviewMapper.insert(review);
+        } catch (DuplicateKeyException ex) {
+            throw new ServiceException("已存在点评记录");
+        }
+        refreshMovieSiteVoteStats(review.getMovieId());
         return toResponse(reviewMapper.selectViewByIdAndUser(review.getId(), userId));
     }
 
@@ -100,23 +117,42 @@ public class ReviewServiceImpl implements ReviewService {
     }
 
     @Override
+    @Transactional
     public ReviewResponse update(Long userId, Long id, ReviewUpdateRequest request) {
         if (request == null || request.getScore() == null || request.getContent() == null) {
             throw new ServiceException("参数不完整");
+        }
+        Review existing = reviewMapper.selectByIdAndUser(id, userId);
+        if (existing == null) {
+            throw new ServiceException("点评记录不存在");
         }
         int updated = reviewMapper.updateReview(id, userId, request.getScore(), request.getContent());
         if (updated == 0) {
             throw new ServiceException("点评记录不存在");
         }
+        refreshMovieSiteVoteStats(existing.getMovieId());
         return toResponse(reviewMapper.selectViewByIdAndUser(id, userId));
     }
 
     @Override
+    @Transactional
     public void delete(Long userId, Long id) {
+        Review existing = reviewMapper.selectByIdAndUser(id, userId);
+        if (existing == null) {
+            throw new ServiceException("点评记录不存在");
+        }
         int updated = reviewMapper.softDelete(id, userId);
         if (updated == 0) {
             throw new ServiceException("点评记录不存在");
         }
+        refreshMovieSiteVoteStats(existing.getMovieId());
+    }
+
+    private void refreshMovieSiteVoteStats(Long movieId) {
+        if (movieId == null) {
+            throw new ServiceException("电影 ID 不能为空");
+        }
+        movieMapper.refreshSiteVoteStats(movieId);
     }
 
     private ReviewResponse toResponse(ReviewView review) {
